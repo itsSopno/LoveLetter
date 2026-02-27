@@ -42,6 +42,42 @@ function App() {
         <>
           <HeroSection onOpen={handleOpenHeart} />
           {isOpen && <LoveLetter />}
+          
+          {/* Direct Love Letter Button - Always visible */}
+          {!isOpen && (
+            <button
+              onClick={handleOpenHeart}
+              style={{
+                position: 'fixed',
+                top: '2rem',
+                right: '2rem',
+                zIndex: 1000,
+                padding: '1rem 2rem',
+                borderRadius: '50px',
+                background: 'rgba(255, 215, 0, 0.2)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid var(--color-celestial-gold)',
+                color: 'var(--color-celestial-gold)',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                letterSpacing: '1px',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 0 20px rgba(255, 215, 0, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'rgba(255, 215, 0, 0.3)';
+                e.target.style.transform = 'scale(1.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'rgba(255, 215, 0, 0.2)';
+                e.target.style.transform = 'scale(1)';
+              }}
+            >
+              💌 Open Love Letter
+            </button>
+          )}
 
           {/* Subtle Music Control */}
           <div
