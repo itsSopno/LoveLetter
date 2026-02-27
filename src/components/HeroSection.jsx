@@ -1,96 +1,100 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 
+class Star {
+    constructor(width, height) {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = Math.random() * 2;
+        this.speedX = (Math.random() - 0.5) * 0.5;
+        this.speedY = (Math.random() - 0.5) * 0.5;
+        this.opacity = Math.random();
+    }
+    update(width, height) {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > width) this.speedX *= -1;
+        if (this.y < 0 || this.y > height) this.speedY *= -1;
+    }
+    draw(ctx) {
+        ctx.fillStyle = `rgba(255, 215, 0, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
 const HeroSection = ({ onOpen }) => {
-    const sectionRef = useRef();
+    const canvasRef = useRef();
     const titleRef = useRef();
     const subtextRef = useRef();
     const buttonRef = useRef();
-    const bgRef = useRef();
-    const bokehContainerRef = useRef();
-    const [particles, setParticles] = useState([]);
+    const sectionRef = useRef();
 
     useEffect(() => {
-        // Generate particles once on mount to keep render pure
-        const particleData = [...Array(30)].map((_, i) => ({
-            id: i,
-            size: Math.random() * 5 + 2,
-            top: Math.random() * 100,
-            left: Math.random() * 100,
-            opacity: Math.random() * 0.5,
-            delay: Math.random() * 15,
-            duration: Math.random() * 15 + 10,
-            translateX: Math.random() * 100 - 50
-        }));
-        setParticles(particleData);
-
+        // GSAP Intro Animation
         const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
+        tl.to(sectionRef.current, { opacity: 1, duration: 2.5 })
+            .from(titleRef.current, { y: 100, opacity: 0, letterSpacing: '20px', duration: 2 }, "-=2")
+            .from(subtextRef.current, { opacity: 0, y: 20, duration: 1.5 }, "-=1.5")
+            .from(buttonRef.current, { scale: 0, opacity: 0, duration: 1.5, ease: "back.out(1.7)" }, "-=1");
 
-        tl.to(sectionRef.current, { opacity: 1, duration: 2 })
-            .fromTo(titleRef.current, { y: 150, opacity: 0, rotate: -5 }, { y: 0, opacity: 1, rotate: -2, duration: 2 }, "-=1.5")
-            .fromTo(subtextRef.current, { y: 50, opacity: 0 }, { y: 0, opacity: 0.9, duration: 1.5 }, "-=1.2")
-            .fromTo(buttonRef.current, { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.5, ease: "back.out(1.7)" }, "-=1");
+        // Canvas Constellation Animation
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        const mouse = { x: null, y: null };
 
-        // Parallax effect on mouse move
-        const handleMouseMove = (e) => {
-            const { clientX, clientY } = e;
-            const xPos = (clientX / window.innerWidth - 0.5) * 30;
-            const yPos = (clientY / window.innerHeight - 0.5) * 30;
+        const resize = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        };
 
-            gsap.to(bgRef.current, {
-                x: xPos,
-                y: yPos,
-                duration: 2.5,
-                ease: "power2.out"
-            });
+        window.addEventListener('resize', resize);
+        resize();
 
-            // Magnetic Button effect
-            if (buttonRef.current) {
-                const rect = buttonRef.current.getBoundingClientRect();
-                const btnX = rect.left + rect.width / 2;
-                const btnY = rect.top + rect.height / 2;
-                const distX = clientX - btnX;
-                const distY = clientY - btnY;
-
-                if (Math.abs(distX) < 150 && Math.abs(distY) < 150) {
-                    gsap.to(buttonRef.current, {
-                        x: distX * 0.2,
-                        y: distY * 0.2,
-                        duration: 0.5,
-                        ease: "power2.out"
-                    });
-                } else {
-                    gsap.to(buttonRef.current, { x: 0, y: 0, duration: 0.5 });
-                }
+        const init = () => {
+            stars = [];
+            const count = 150;
+            for (let i = 0; i < count; i++) {
+                stars.push(new Star(canvas.width, canvas.height));
             }
         };
 
-        window.addEventListener('mousemove', handleMouseMove);
+        const animate = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(star => {
+                star.update(canvas.width, canvas.height);
+                star.draw(ctx);
 
-        // Dynamic Bokeh
-        const createBokeh = () => {
-            if (!bokehContainerRef.current) return;
-            const b = document.createElement('div');
-            const size = Math.random() * 100 + 50;
-            b.style.width = size + 'px';
-            b.style.height = size + 'px';
-            b.style.background = 'rgba(255, 255, 255, 0.1)';
-            b.style.borderRadius = '50%';
-            b.style.filter = 'blur(30px)';
-            b.style.position = 'absolute';
-            b.style.left = Math.random() * 100 + '%';
-            b.style.top = Math.random() * 100 + '%';
-            b.style.animation = `float-bokeh ${Math.random() * 10 + 10}s infinite ease-in-out`;
-            bokehContainerRef.current.appendChild(b);
-
-            setTimeout(() => b.remove(), 20000);
+                // Connect stars near mouse
+                const dx = mouse.x - star.x;
+                const dy = mouse.y - star.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 150) {
+                    ctx.strokeStyle = `rgba(255, 215, 0, ${1 - dist / 150})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(mouse.x, mouse.y);
+                    ctx.lineTo(star.x, star.y);
+                    ctx.stroke();
+                }
+            });
+            requestAnimationFrame(animate);
         };
 
-        const bokehInterval = setInterval(createBokeh, 1500);
+        const handleMouseMove = (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        init();
+        animate();
 
         return () => {
+            window.removeEventListener('resize', resize);
             window.removeEventListener('mousemove', handleMouseMove);
-            clearInterval(bokehInterval);
         };
     }, []);
 
@@ -107,110 +111,105 @@ const HeroSection = ({ onOpen }) => {
                 textAlign: 'center',
                 opacity: 0,
                 overflow: 'hidden',
-                color: 'white'
+                background: 'var(--color-midnight)'
             }}
         >
-            <div ref={bokehContainerRef} style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }} />
+            <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
 
-            {/* Background with Parallax */}
+            {/* Nebula Overlays */}
             <div
-                ref={bgRef}
                 style={{
                     position: 'absolute',
-                    top: '-15%',
-                    left: '-15%',
-                    width: '130%',
-                    height: '130%',
-                    backgroundImage: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(/src/assets/sunset_gradient.png)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    zIndex: -1,
-                    filter: 'contrast(1.1) brightness(0.9)'
+                    top: '20%',
+                    left: '10%',
+                    width: '40vw',
+                    height: '40vw',
+                    background: 'var(--color-nebula-purple)',
+                    filter: 'blur(100px)',
+                    opacity: 0.1,
+                    borderRadius: '50%',
+                    animation: 'nebula-pulse 10s infinite alternate ease-in-out'
+                }}
+            />
+            <div
+                style={{
+                    position: 'absolute',
+                    bottom: '10%',
+                    right: '5%',
+                    width: '50vw',
+                    height: '50vw',
+                    background: 'var(--color-nebula-pink)',
+                    filter: 'blur(120px)',
+                    opacity: 0.1,
+                    borderRadius: '50%',
+                    animation: 'nebula-pulse 15s infinite alternate-reverse ease-in-out'
                 }}
             />
 
-            <div style={{ maxWidth: '1000px', padding: '0 2rem', position: 'relative', zIndex: 10 }}>
+            <div style={{ position: 'relative', zIndex: 10, maxWidth: '1100px', padding: '0 2rem' }}>
                 <h1
                     ref={titleRef}
-                    className="milky-font soft-glow"
+                    className="milky-font star-glow"
                     style={{
-                        fontSize: 'clamp(3.5rem, 12vw, 8rem)',
-                        lineHeight: 1,
-                        marginBottom: '1.5rem',
-                        filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.2))'
+                        fontSize: 'clamp(4rem, 15vw, 10rem)',
+                        color: 'var(--color-celestial-gold)',
+                        lineHeight: 0.9,
+                        marginBottom: '2rem'
                     }}
                 >
-                    To The One Who<br />Owns My Heart
+                    Love Written<br />In The Stars
                 </h1>
                 <p
                     ref={subtextRef}
                     className="biglla-font"
                     style={{
-                        fontSize: 'clamp(1rem, 3vw, 1.5rem)',
-                        fontWeight: 300,
-                        letterSpacing: '4px',
+                        fontSize: 'clamp(1rem, 4vw, 1.8rem)',
+                        color: 'var(--color-starlight)',
+                        opacity: 0.8,
+                        letterSpacing: '8px',
                         textTransform: 'uppercase',
-                        marginBottom: '4rem',
-                        opacity: 0.8
+                        marginBottom: '4rem'
                     }}
                 >
-                    This little world is only for you
+                    Across the cosmos, my heart finds you
                 </p>
 
                 <button
                     ref={buttonRef}
                     onClick={onOpen}
-                    className="glass-effect"
+                    className="glass-celestial"
                     style={{
-                        padding: '1.5rem 4rem',
+                        padding: '1.5rem 5rem',
                         borderRadius: '100px',
-                        fontSize: '1.4rem',
-                        color: 'white',
-                        fontWeight: 500,
-                        boxShadow: '0 0 50px rgba(255, 192, 203, 0.3), inset 0 0 20px rgba(255,255,255,0.2)',
-                        border: '1px solid rgba(255, 255, 255, 0.4)',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        backdropFilter: 'blur(15px)',
-                        transition: 'background 0.3s ease, box-shadow 0.3s ease',
-                        fontFamily: 'var(--font-serif)'
+                        fontSize: '1.2rem',
+                        color: 'var(--color-starlight)',
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '2px',
+                        cursor: 'pointer',
+                        transition: 'var(--transition-cinematic)',
+                        boxShadow: '0 0 30px rgba(255, 215, 0, 0.2)',
+                        position: 'relative',
+                        overflow: 'hidden'
                     }}
                     onMouseEnter={(e) => {
-                        gsap.to(e.target, { backgroundColor: 'rgba(255, 255, 255, 0.2)', boxShadow: '0 0 70px rgba(255, 192, 203, 0.6)', duration: 0.3 });
+                        gsap.to(e.target, {
+                            scale: 1.05,
+                            boxShadow: '0 0 50px rgba(255, 215, 0, 0.5)',
+                            backgroundColor: 'rgba(255, 215, 0, 0.1)'
+                        });
                     }}
                     onMouseLeave={(e) => {
-                        gsap.to(e.target, { backgroundColor: 'rgba(255, 255, 255, 0.1)', boxShadow: '0 0 50px rgba(255, 192, 203, 0.3)', duration: 0.3 });
+                        gsap.to(e.target, {
+                            scale: 1,
+                            boxShadow: '0 0 30px rgba(255, 215, 0, 0.2)',
+                            backgroundColor: 'rgba(26, 27, 41, 0.6)'
+                        });
                     }}
                 >
-                    Open My Heart
+                    Enter the Cosmos
                 </button>
             </div>
-
-            {/* Floating particles */}
-            {particles.map((p) => (
-                <div
-                    key={p.id}
-                    style={{
-                        position: 'absolute',
-                        width: p.size + 'px',
-                        height: p.size + 'px',
-                        background: 'rgba(255, 255, 255, 0.6)',
-                        borderRadius: '50%',
-                        top: p.top + '%',
-                        left: p.left + '%',
-                        filter: 'blur(1px)',
-                        opacity: p.opacity,
-                        animation: `float-particles-${p.id} ${p.duration}s infinite ease-in-out`,
-                        animationDelay: `${-p.delay}s`
-                    }}
-                >
-                    <style>{`
-            @keyframes float-particles-${p.id} {
-              0%, 100% { transform: translateY(0) translateX(0); }
-              50% { transform: translateY(-100px) translateX(${p.translateX}px); }
-            }
-          `}</style>
-                </div>
-            ))}
         </section>
     );
 };

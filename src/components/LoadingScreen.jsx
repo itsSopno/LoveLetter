@@ -3,90 +3,88 @@ import gsap from 'gsap';
 
 const LoadingScreen = ({ onComplete }) => {
   const containerRef = useRef();
+  const starRef = useRef();
   const heartRef = useRef();
   const textRef = useRef();
 
   useEffect(() => {
     const tl = gsap.timeline();
 
-    // Heart beat animation
-    gsap.to(heartRef.current, {
-      scale: 1.25,
-      duration: 0.8,
-      repeat: -1,
-      yoyo: true,
-      ease: "power1.inOut"
-    });
+    // Star Genesis Animation
+    tl.set(starRef.current, { scale: 0, opacity: 0 })
+      .to(starRef.current, {
+        scale: 1.5,
+        opacity: 1,
+        duration: 1.5,
+        ease: "power2.inOut",
+        onComplete: () => {
+          // Twinkle the genesis star
+          gsap.to(starRef.current, {
+            opacity: 0.5,
+            scale: 1.2,
+            duration: 0.5,
+            repeat: -1,
+            yoyo: true
+          });
+        }
+      })
+      .to(starRef.current, {
+        scale: 40,
+        opacity: 0,
+        duration: 2,
+        ease: "expo.in",
+        delay: 0.5
+      });
 
-    // Fade in text
-    tl.fromTo(textRef.current,
-      { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, duration: 1.8, ease: "expo.out", delay: 0.5 }
-    );
-
-    // Initial heart scale reveal
+    // Constellation Heart Reveal
     tl.fromTo(heartRef.current,
-      { scale: 0, opacity: 0 },
-      { scale: 1, opacity: 1, duration: 1.5, ease: "back.out(1.7)" },
-      "<"
+      { scale: 0.8, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 2, ease: "power4.out" },
+      "-=1"
     );
 
-    // Fade out everything after a delay
+    // Text reveal
+    tl.fromTo(textRef.current,
+      { y: 30, opacity: 0 },
+      { y: 0, opacity: 1, duration: 1.5, ease: "expo.out" },
+      "-=1.5"
+    );
+
+    // Final fade out
     tl.to(containerRef.current, {
       opacity: 0,
       duration: 2,
-      delay: 3.5,
+      delay: 2.5,
       onComplete: () => onComplete()
     });
 
-    // Floating particles and Bokeh
-    const createParticle = () => {
-      if (!containerRef.current) return;
-      const p = document.createElement('div');
-      const isBokeh = Math.random() > 0.7;
+    // Create background stars
+    const starsCount = 100;
+    for (let i = 0; i < starsCount; i++) {
+      const s = document.createElement('div');
+      s.style.position = 'absolute';
+      s.style.width = Math.random() * 2 + 'px';
+      s.style.height = s.style.width;
+      s.style.background = 'white';
+      s.style.borderRadius = '50%';
+      s.style.top = Math.random() * 100 + 'vh';
+      s.style.left = Math.random() * 100 + 'vw';
+      s.style.opacity = Math.random();
+      s.style.animation = `star-twinkle ${Math.random() * 3 + 2}s infinite ease-in-out`;
+      containerRef.current.appendChild(s);
+    }
 
-      if (isBokeh) {
-        p.style.width = Math.random() * 50 + 20 + 'px';
-        p.style.height = p.style.width;
-        p.style.background = 'white';
-        p.style.borderRadius = '50%';
-        p.style.filter = 'blur(15px)';
-        p.style.opacity = Math.random() * 0.2;
-      } else {
-        p.innerHTML = '❤️';
-        p.style.fontSize = (Math.random() * 15 + 10) + 'px';
-        p.style.opacity = Math.random() * 0.5 + 0.2;
-      }
-
-      p.style.position = 'absolute';
-      p.style.left = Math.random() * 100 + 'vw';
-      p.style.top = '110vh';
-      containerRef.current.appendChild(p);
-
-      gsap.to(p, {
-        y: '-120vh',
-        x: (Math.random() - 0.5) * 300,
-        rotation: isBokeh ? 0 : Math.random() * 720,
-        duration: Math.random() * 6 + 6,
-        ease: "none",
-        onComplete: () => p.remove()
-      });
-    };
-
-    const particleInterval = setInterval(createParticle, 300);
-
-    return () => clearInterval(particleInterval);
+    return () => { };
   }, [onComplete]);
 
   return (
     <div
       ref={containerRef}
+      className="celestial-bg"
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        background: 'linear-gradient(135deg, #FFC0CB 0%, #E6E6FA 100%)',
-        backgroundSize: 'cover',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -94,42 +92,42 @@ const LoadingScreen = ({ onComplete }) => {
         overflow: 'hidden'
       }}
     >
-      {/* Background Bokeh Image Layer */}
+      {/* Genesis Star */}
       <div
+        ref={starRef}
         style={{
           position: 'absolute',
-          inset: 0,
-          background: 'url(/src/assets/bokeh_background.png)',
-          backgroundSize: 'cover',
-          opacity: 0.4,
-          filter: 'blur(5px)'
+          width: '4px',
+          height: '4px',
+          background: 'var(--color-celestial-gold)',
+          borderRadius: '50%',
+          boxShadow: '0 0 20px 5px var(--color-celestial-gold)'
         }}
       />
 
       <div
-        className="glass-effect"
+        className="glass-celestial"
         style={{
           padding: '4rem',
-          borderRadius: '3rem',
+          borderRadius: '2rem',
           textAlign: 'center',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: '2rem',
-          position: 'relative',
-          zIndex: 1,
-          boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+          zIndex: 10
         }}
       >
-        <div ref={heartRef} style={{ fontSize: '6rem', filter: 'drop-shadow(0 0 25px rgba(255, 255, 255, 0.8))' }}>
-          ❤️
+        <div ref={heartRef} style={{ fontSize: '6rem', position: 'relative' }}>
+          <span className="star-glow">❤️</span>
+          {/* Animated SVG Constellation could go here */}
         </div>
-        <div ref={textRef} style={{ color: 'white' }}>
-          <h2 className="milky-font" style={{ fontSize: '2.5rem', marginBottom: '1rem', fontWeight: 400, transform: 'rotate(-2deg)' }}>
-            Something special is coming...
+        <div ref={textRef}>
+          <h2 className="milky-font star-glow" style={{ fontSize: '3rem', color: 'var(--color-celestial-gold)', marginBottom: '0.5rem' }}>
+            A Galaxy of Love...
           </h2>
-          <p className="biglla-font" style={{ fontSize: '1.4rem', opacity: 0.9, letterSpacing: '1px' }}>
-            Every heartbeat carries my love
+          <p className="biglla-font" style={{ fontSize: '1.2rem', color: 'var(--color-starlight)', opacity: 0.8, letterSpacing: '2px' }}>
+            BECOMING PART OF YOUR UNIVERSE
           </p>
         </div>
       </div>

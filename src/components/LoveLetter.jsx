@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -7,131 +7,130 @@ gsap.registerPlugin(ScrollTrigger);
 const LoveLetter = () => {
     const containerRef = useRef();
     const letterRef = useRef();
-    const titleRef = useRef();
     const paragraphsRef = useRef([]);
     const signatureRef = useRef();
-    const waxSealRef = useRef();
+    const meteorsRef = useRef();
+
+    // Generate background stars once
+    const backgroundStars = useMemo(() => {
+        return [...Array(50)].map((_, i) => ({
+            id: i,
+            top: Math.random() * 100,
+            left: Math.random() * 100,
+            opacity: Math.random() * 0.5,
+            duration: Math.random() * 5 + 3
+        }));
+    }, []);
 
     useEffect(() => {
-        const isMobile = window.matchMedia("(max-width: 768px)").matches;
-        const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
+        // Meteor Shower Animation
+        const createMeteor = () => {
+            if (!meteorsRef.current) return;
+            const meteor = document.createElement('div');
+            meteor.style.position = 'absolute';
+            meteor.style.width = '2px';
+            meteor.style.height = '100px';
+            meteor.style.background = 'linear-gradient(to bottom, rgba(255, 215, 0, 0.8), transparent)';
+            meteor.style.top = '-100px';
+            meteor.style.left = Math.random() * 100 + 'vw';
+            meteor.style.transform = 'rotate(45deg)';
+            meteor.style.opacity = '0';
+            meteorsRef.current.appendChild(meteor);
 
-        // 3D Tilt Effect - Disabled on touch devices
+            gsap.to(meteor, {
+                y: '100vh',
+                x: '100vw',
+                opacity: 1,
+                duration: 1.5,
+                ease: "none",
+                onComplete: () => meteor.remove()
+            });
+        };
+
+        const meteorInterval = setInterval(createMeteor, 4000);
+
+        // Letter Card Hover tilt (Stellar Parallax)
         const handleMouseMove = (e) => {
-            if (!letterRef.current || isTouchDevice) return;
+            if (!letterRef.current) return;
             const { clientX, clientY } = e;
             const { left, top, width, height } = letterRef.current.getBoundingClientRect();
-
             const x = (clientX - left) / width - 0.5;
             const y = (clientY - top) / height - 0.5;
 
             gsap.to(letterRef.current, {
-                rotationY: x * 8,
-                rotationX: -y * 8,
+                rotationY: x * 10,
+                rotationX: -y * 10,
                 transformPerspective: 1000,
-                duration: 0.5,
+                duration: 0.8,
                 ease: "power2.out"
             });
         };
+        window.addEventListener('mousemove', handleMouseMove);
 
-        if (!isTouchDevice) {
-            window.addEventListener('mousemove', handleMouseMove);
-        }
-
-        // New "Sweet Unfolding" Reveal Animation
-        const tl = gsap.timeline({
-            scrollTrigger: {
-                trigger: letterRef.current,
-                start: "top 95%",
-            }
-        });
-
-        tl.fromTo(letterRef.current,
+        // Fade reveal for card
+        gsap.fromTo(letterRef.current,
+            { opacity: 0, scale: 0.9, y: 100 },
             {
-                rotateX: -90,
-                opacity: 0,
-                scale: 0.5,
-            },
-            {
-                rotateX: 0,
                 opacity: 1,
                 scale: 1,
-                duration: 2.5,
-                ease: "elastic.out(1, 0.75)",
+                y: 0,
+                duration: 2,
+                ease: "expo.out",
+                scrollTrigger: {
+                    trigger: letterRef.current,
+                    start: "top 80%"
+                }
             }
         );
 
-        // Staggered word reveal for paragraphs
+        // Staggered word reveal with "stardust" feel
         paragraphsRef.current.forEach((para) => {
             if (!para) return;
-
             const words = para.querySelectorAll('.word');
-
             gsap.to(words, {
                 opacity: 1,
                 y: 0,
-                duration: 1,
-                stagger: 0.04,
-                ease: "power2.out",
+                filter: "blur(0px)",
+                duration: 1.5,
+                stagger: 0.05,
+                ease: "power3.out",
                 scrollTrigger: {
                     trigger: para,
-                    start: "top 85%",
+                    start: "top 85%"
                 }
             });
         });
 
-        // Signature Reveal with rotation
+        // Signature Fade
         gsap.fromTo(signatureRef.current,
-            { x: 30, opacity: 0, rotate: 10 },
+            { opacity: 0, x: 20 },
             {
-                x: 0,
                 opacity: 1,
-                rotate: -3,
+                x: 0,
                 duration: 2,
-                ease: "power3.out",
                 scrollTrigger: {
                     trigger: signatureRef.current,
-                    start: "top 90%",
+                    start: "top 90%"
                 }
             }
         );
 
-        // Floating particles with shadows
-        const petals = ['🌸', '🌹', '✨', '🤍'];
-        const createPetal = () => {
-            if (!containerRef.current) return;
-            const p = document.createElement('div');
-            p.innerHTML = petals[Math.floor(Math.random() * petals.length)];
-            p.style.position = 'absolute';
-            p.style.left = Math.random() * 100 + 'vw';
-            p.style.top = '-50px';
-            p.style.fontSize = (Math.random() * (isMobile ? 15 : 30) + 10) + 'px';
-            p.style.opacity = Math.random() * 0.4 + 0.3;
-            p.style.pointerEvents = 'none';
-            p.style.filter = `blur(${Math.random() * 2}px) drop-shadow(0 5px 5px rgba(0,0,0,0.1))`;
-            containerRef.current.appendChild(p);
-
-            gsap.to(p, {
-                y: '220vh',
-                x: (Math.random() - 0.5) * 500,
-                rotation: Math.random() * 2000,
-                duration: Math.random() * 15 + 10,
-                ease: "none",
-                onComplete: () => p.remove()
-            });
-        };
-
-        const petalInterval = setInterval(createPetal, isMobile ? 1500 : 1000);
-
         return () => {
-            clearInterval(petalInterval);
+            clearInterval(meteorInterval);
             window.removeEventListener('mousemove', handleMouseMove);
         };
     }, []);
 
     const prepareText = (text) => {
         return text.split(' ').map((word, i) => (
-            <span key={i} className="word" style={{ display: 'inline-block', opacity: 0, transform: 'translateY(15px)', marginRight: '0.25em' }}>
+            <span key={i} className="word" style={{
+                display: 'inline-block',
+                opacity: 0,
+                transform: 'translateY(10px)',
+                filter: "blur(5px)",
+                marginRight: '0.25em',
+                transition: 'color 0.3s'
+            }}>
                 {word}
             </span>
         ));
@@ -140,27 +139,39 @@ const LoveLetter = () => {
     return (
         <section
             ref={containerRef}
-            className="letter-section unfolding-container"
             style={{
                 minHeight: '200vh',
                 padding: '20vh 5vw',
-                background: 'linear-gradient(to bottom, #FAF9F6 0%, #FDFBFB 100%)',
+                background: 'var(--color-midnight)',
                 position: 'relative',
                 overflow: 'hidden'
             }}
         >
-            <div className="vignette-overlay" style={{ background: 'radial-gradient(circle, transparent 30%, rgba(183, 110, 121, 0.05) 100%)' }} />
+            <div ref={meteorsRef} style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }} />
+
+            {/* Background Distant Stars */}
+            {backgroundStars.map((s) => (
+                <div key={s.id} style={{
+                    position: 'absolute',
+                    width: '1px',
+                    height: '1px',
+                    background: 'white',
+                    top: s.top + '%',
+                    left: s.left + '%',
+                    opacity: s.opacity,
+                    animation: `star-twinkle ${s.duration}s infinite`
+                }} />
+            ))}
 
             <div
                 ref={letterRef}
-                className="letter-card paper-texture shimmer-bg"
+                className="glass-celestial gold-border"
                 style={{
                     width: '100%',
-                    maxWidth: '850px',
+                    maxWidth: '900px',
                     margin: '0 auto',
-                    padding: 'clamp(4rem, 12vw, 8rem) clamp(2rem, 10vw, 5rem)',
-                    borderRadius: '4px',
-                    boxShadow: '0 40px 80px rgba(183, 110, 121, 0.15), 0 10px 30px rgba(0,0,0,0.05)',
+                    padding: 'clamp(3rem, 10vw, 6rem)',
+                    borderRadius: '1rem',
                     position: 'relative',
                     zIndex: 2,
                     display: 'flex',
@@ -169,127 +180,81 @@ const LoveLetter = () => {
                     transformStyle: 'preserve-3d'
                 }}
             >
-                {/* Ornate Inner Border */}
-                <div style={{
-                    position: 'absolute',
-                    inset: '20px',
-                    border: '1px solid rgba(183, 110, 121, 0.15)',
-                    pointerEvents: 'none',
-                    borderRadius: '4px'
-                }} />
+                {/* Constellation Lines (Static Decor) */}
+                <svg style={{ position: 'absolute', inset: 0, opacity: 0.1, pointerEvents: 'none', width: '100%', height: '100%' }}>
+                    <line x1="10%" y1="10%" x2="40%" y2="20%" stroke="var(--color-celestial-gold)" strokeWidth="1" />
+                    <line x1="40%" y1="20%" x2="60%" y2="5%" stroke="var(--color-celestial-gold)" strokeWidth="1" />
+                    <line x1="60%" y1="5%" x2="90%" y2="15%" stroke="var(--color-celestial-gold)" strokeWidth="1" />
+                    <circle cx="10%" cy="10%" r="2" fill="var(--color-celestial-gold)" />
+                    <circle cx="40%" cy="20%" r="2" fill="var(--color-celestial-gold)" />
+                    <circle cx="60%" cy="5%" r="2" fill="var(--color-celestial-gold)" />
+                    <circle cx="90%" cy="15%" r="2" fill="var(--color-celestial-gold)" />
+                </svg>
 
-                {/* Detailed Wax Seal */}
-                <div
-                    ref={waxSealRef}
-                    className="wax-seal"
+                <h2
+                    className="milky-font star-glow"
                     style={{
-                        position: 'absolute',
-                        top: '-50px',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        width: 'clamp(80px, 20vw, 100px)',
-                        height: 'clamp(80px, 20vw, 100px)',
-                        background: 'radial-gradient(circle, #8B0000 0%, #D40000 100%)',
-                        borderRadius: '50%',
-                        boxShadow: '0 10px 25px rgba(0,0,0,0.4), inset 0 0 15px rgba(0,0,0,0.3)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 10,
-                        border: '2px solid #5A0000',
-                        cursor: 'pointer'
-                    }}
-                    onMouseEnter={(e) => gsap.to(e.currentTarget, { scale: 1.1, duration: 0.3, ease: "back.out(2)" })}
-                    onMouseLeave={(e) => gsap.to(e.currentTarget, { scale: 1, duration: 0.3 })}
-                >
-                    <svg width="60" height="60" viewBox="0 0 24 24" fill="rgba(255,215,0,0.6)" style={{ filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.5))' }}>
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                    </svg>
-                    <div style={{ position: 'absolute', inset: '-8px', border: '5px solid rgba(139,0,0,0.4)', borderRadius: '50%' }} />
-                    <div style={{ position: 'absolute', inset: '-15px', border: '2px solid rgba(139,0,0,0.2)', borderRadius: '50%' }} />
-                </div>
-
-                <div
-                    ref={titleRef}
-                    className="milky-font letter-title"
-                    style={{
-                        fontSize: 'clamp(3rem, 10vw, 4.5rem)',
-                        color: '#B76E79',
+                        fontSize: 'clamp(3rem, 12vw, 6rem)',
+                        color: 'var(--color-celestial-gold)',
                         marginBottom: '4rem',
-                        textAlign: 'center',
-                        transform: 'rotate(-2deg)',
-                        textShadow: '2px 2px 0 rgba(255,255,255,0.8)'
+                        textAlign: 'center'
                     }}
                 >
-                    My Dearest,
-                </div>
+                    My Universe,
+                </h2>
 
-                <div className="letter-body biglla-font" style={{ width: '100%', fontSize: 'clamp(1.2rem, 4.5vw, 1.5rem)', lineHeight: 1.9, color: '#2D2424', letterSpacing: '0.5px' }}>
+                <div className="biglla-font" style={{ width: '100%', fontSize: 'clamp(1.1rem, 4vw, 1.4rem)', lineHeight: 1.8, color: 'var(--color-starlight)' }}>
                     <p ref={el => paragraphsRef.current[0] = el} style={{ marginBottom: '2.5rem' }}>
-                        {prepareText("I wrote this letter today because I wanted you to know how much you truly mean to me. There are moments in life that change everything, and meeting you was the most")}
-                        <span className="rose-gold-glow" style={{ fontWeight: 700, fontStyle: 'italic', display: 'inline-block' }}> beautiful </span>
-                        {prepareText("shift my world has ever known.")}
+                        {prepareText("In the vast expanse of time and space, I found something more radiant than any star—you. You are the gravity that holds my world together, the light that guides me through the darkest voids.")}
                     </p>
 
                     <p ref={el => paragraphsRef.current[1] = el} style={{ marginBottom: '2.5rem' }}>
-                        {prepareText("In your smile, I find a kind of peace I never knew existed. In your eyes, I see a future that is")}
-                        <span className="rose-gold-glow" style={{ display: 'inline-block' }}> brighter and kinder </span>
-                        {prepareText("than any dream I've ever had. You are the poetry I never knew I could write.")}
+                        {prepareText("I used to look at the night sky and feel small, but now, knowing you are in this world with me, I feel as infinite as the cosmos itself. Every laugh we share is a new constellation born in my heart.")}
                     </p>
 
                     <p ref={el => paragraphsRef.current[2] = el} style={{ marginBottom: '2.5rem' }}>
-                        {prepareText("Every heartbeat of mine carries a piece of your laughter, a memory of your warmth. This little corner of the digital world is a sanctuary for us, a place where I can remind you that you are")}
-                        <span className="rose-gold-glow" style={{ display: 'inline-block' }}> loved beyond measure</span>.
+                        {prepareText("No matter where the cosmic winds take us, I will always orbit around the joy you bring. This letter is a map of my soul, where every path lead back to the love I have for you.")}
                     </p>
 
                     <p ref={el => paragraphsRef.current[3] = el} style={{ marginBottom: '2.5rem' }}>
-                        {prepareText("I promise to hold your hand through the storms and dance with you in the sunlight. You are my heart's home, and I am yours,")}
-                        <span className="rose-gold-glow" style={{ textDecoration: 'underline decoration-dotted', display: 'inline-block' }}> forever</span>.
+                        {prepareText("Until the last star fades and the universe grows cold, I will be yours, steady and bright, across all dimensions.")}
                     </p>
                 </div>
 
                 <div
                     ref={signatureRef}
-                    className="milky-font signature"
+                    className="milky-font star-glow"
                     style={{
-                        fontSize: 'clamp(2.5rem, 8vw, 3.5rem)',
+                        fontSize: 'clamp(2.5rem, 8vw, 4rem)',
                         marginTop: '6rem',
                         alignSelf: 'flex-end',
-                        color: '#B76E79',
-                        paddingRight: '2rem',
+                        color: 'var(--color-celestial-gold)',
                         textAlign: 'right'
                     }}
                 >
-                    Forever Yours,<br />
+                    Yours Eternally,<br />
                     Boomer Nilu
                 </div>
 
-                {/* Ornate bottom divider */}
+                {/* Ambient Orbiting Star */}
                 <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '20px',
-                    marginTop: '5rem',
-                    opacity: 0.4
-                }}>
-                    <div style={{ width: 'clamp(60px, 15vw, 120px)', height: '1.5px', background: 'linear-gradient(to right, transparent, #B76E79)' }} />
-                    <div style={{ color: '#B76E79', fontSize: '1.5rem' }}>❧</div>
-                    <div style={{ width: 'clamp(60px, 15vw, 120px)', height: '1.5px', background: 'linear-gradient(to left, transparent, #B76E79)' }} />
-                </div>
+                    position: 'absolute',
+                    width: '20px',
+                    height: '20px',
+                    background: 'var(--color-celestial-gold)',
+                    borderRadius: '50%',
+                    filter: 'blur(5px)',
+                    bottom: '2rem',
+                    left: '2rem',
+                    opacity: 0.3,
+                    animation: 'nebula-pulse 5s infinite ease-in-out'
+                }} />
             </div>
 
             <style>{`
-        .word {
-          transition: transform 0.3s ease, color 0.3s ease;
-        }
         .word:hover {
-          transform: translateY(-3px) scale(1.1);
-          color: #B76E79;
-        }
-        @media (max-width: 600px) {
-          .letter-card {
-            padding: 5rem 1.5rem 7rem 1.5rem !important;
-          }
+            color: var(--color-celestial-gold);
+            text-shadow: 0 0 10px var(--color-celestial-gold);
         }
       `}</style>
         </section>

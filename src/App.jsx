@@ -55,11 +55,11 @@ function App() {
               display: 'flex',
               alignItems: 'center',
               gap: '0.8rem',
-              color: isOpen ? '#B76E79' : 'white',
+              color: isOpen ? 'var(--color-celestial-gold)' : 'white',
               fontSize: '0.9rem',
               letterSpacing: '1px',
               textTransform: 'uppercase',
-              transaction: 'color 0.5s ease'
+              transition: 'color 0.5s ease'
             }}
           >
             <div className={`music-indicator ${isPlaying ? 'playing' : ''}`}>
