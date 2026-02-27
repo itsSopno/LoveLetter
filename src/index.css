@@ -7,7 +7,7 @@
   --color-rose-gold: #B76E79;
   --color-text-dark: #2D2424;
   --color-text-light: #FDFBFB;
-  
+
   --font-cursive: 'Great Vibes', cursive;
   --font-serif: 'Playfair Display', serif;
   --font-sans: 'Inter', sans-serif;
@@ -29,7 +29,9 @@ body {
   line-height: 1.6;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   font-family: var(--font-serif);
   font-weight: 700;
 }
@@ -57,7 +59,41 @@ button {
   transition: var(--transition-smooth);
 }
 
-/* Base Fade Animation for Sections */
+/* Vignette Overlay */
+.vignette-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.1) 100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Ornate Frame Pseudo-elements */
+.ornate-frame::before,
+.ornate-frame::after {
+  content: '';
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--color-rose-gold);
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+.ornate-frame::before {
+  top: 20px;
+  left: 20px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.ornate-frame::after {
+  bottom: 20px;
+  right: 20px;
+  border-left: none;
+  border-top: none;
+}
+
 .section-fade {
   opacity: 0;
   transition: opacity 1s ease-in-out;
@@ -79,4 +115,30 @@ button {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-rose-gold);
+}
+
+@font-face {
+  font-family: 'MilyWalky';
+  src: url('./Font/MilkyWalky-Regular.otf') format('opentype'),
+    url('./Font/MilkyWalky-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.milky-font {
+  font-family: 'MilyWalky' sans-serif;
+
+}
+
+@font-face {
+  font-family: 'Biglla';
+  src:
+    url('./Font2/_Bigilla.otf') format('opentype');
+}
+
+.biglla-font {
+  font-family: 'Biglla' sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }

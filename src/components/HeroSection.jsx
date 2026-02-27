@@ -69,13 +69,15 @@ const HeroSection = ({ onOpen }) => {
             <div style={{ maxWidth: '800px', padding: '0 2rem' }}>
                 <h1
                     ref={titleRef}
-                    className="romantic-font"
+                    // className="romantic-font"
+                    className='milky-font'
                     style={{ fontSize: 'clamp(3rem, 10vw, 6rem)', lineHeight: 1.1, marginBottom: '1rem' }}
                 >
                     To The One Who<br />Owns My Heart
                 </h1>
                 <p
                     ref={subtextRef}
+                    className='biglla-font'
                     style={{ fontSize: '1.2rem', fontWeight: 300, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '3rem' }}
                 >
                     This little world is only for you
