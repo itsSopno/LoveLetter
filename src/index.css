@@ -127,18 +127,107 @@ button {
 }
 
 .milky-font {
-  font-family: 'MilyWalky' sans-serif;
-
+  font-family: 'MilyWalky', 'Great Vibes', cursive;
 }
 
 @font-face {
   font-family: 'Biglla';
-  src:
-    url('./Font2/_Bigilla.otf') format('opentype');
+  src: url('./Font2/_Bigilla.otf') format('opentype');
 }
 
 .biglla-font {
-  font-family: 'Biglla' sans-serif;
+  font-family: 'Biglla', 'Playfair Display', serif;
   font-weight: 400;
   font-style: normal;
+}
+
+/* Luxury Utility Classes */
+.soft-glow {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.rose-gold-glow {
+  color: var(--color-rose-gold);
+  text-shadow: 0 0 15px rgba(183, 110, 121, 0.4);
+  transition: var(--transition-smooth);
+}
+
+.rose-gold-glow:hover {
+  text-shadow: 0 0 25px rgba(183, 110, 121, 0.7);
+  transform: translateY(-2px);
+}
+
+.shimmer-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-bg::before {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 300%;
+  height: 300%;
+  background: linear-gradient(45deg,
+      transparent 45%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 55%);
+  animation: shimmer 8s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translate(-30%, -30%);
+  }
+
+  100% {
+    transform: translate(30%, 30%);
+  }
+}
+
+/* Pure CSS Paper Texture */
+.paper-texture {
+  background-color: #fffdfb;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(255, 192, 203, 0.05) 0, transparent 50%),
+    radial-gradient(at 50% 0%, rgba(230, 230, 250, 0.05) 0, transparent 50%);
+  position: relative;
+  overflow: hidden;
+}
+
+.paper-texture::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3UniqueId%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Sweet Unfolding Animation States */
+.unfolding-container {
+  perspective: 1500px;
+}
+
+.letter-card {
+  transform-origin: center top;
+}
+
+@keyframes float-bokeh {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.3;
+  }
+
+  50% {
+    transform: translate(20px, -20px) scale(1.1);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.3;
+  }
 }

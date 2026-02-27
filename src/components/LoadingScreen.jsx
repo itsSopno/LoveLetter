@@ -5,14 +5,13 @@ const LoadingScreen = ({ onComplete }) => {
   const containerRef = useRef();
   const heartRef = useRef();
   const textRef = useRef();
-  const particlesRef = useRef([]);
 
   useEffect(() => {
     const tl = gsap.timeline();
 
     // Heart beat animation
     gsap.to(heartRef.current, {
-      scale: 1.2,
+      scale: 1.25,
       duration: 0.8,
       repeat: -1,
       yoyo: true,
@@ -20,60 +19,73 @@ const LoadingScreen = ({ onComplete }) => {
     });
 
     // Fade in text
-    tl.fromTo(textRef.current, 
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 1.5, ease: "power2.out", delay: 0.5 }
+    tl.fromTo(textRef.current,
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 1.8, ease: "expo.out", delay: 0.5 }
     );
 
     // Initial heart scale reveal
     tl.fromTo(heartRef.current,
       { scale: 0, opacity: 0 },
-      { scale: 1, opacity: 1, duration: 1.2, ease: "back.out(1.7)" },
+      { scale: 1, opacity: 1, duration: 1.5, ease: "back.out(1.7)" },
       "<"
     );
 
     // Fade out everything after a delay
     tl.to(containerRef.current, {
       opacity: 0,
-      duration: 1.5,
-      delay: 3,
+      duration: 2,
+      delay: 3.5,
       onComplete: () => onComplete()
     });
 
-    // Simple floating hearts/particles
+    // Floating particles and Bokeh
     const createParticle = () => {
+      if (!containerRef.current) return;
       const p = document.createElement('div');
-      p.innerHTML = '❤️';
+      const isBokeh = Math.random() > 0.7;
+
+      if (isBokeh) {
+        p.style.width = Math.random() * 50 + 20 + 'px';
+        p.style.height = p.style.width;
+        p.style.background = 'white';
+        p.style.borderRadius = '50%';
+        p.style.filter = 'blur(15px)';
+        p.style.opacity = Math.random() * 0.2;
+      } else {
+        p.innerHTML = '❤️';
+        p.style.fontSize = (Math.random() * 15 + 10) + 'px';
+        p.style.opacity = Math.random() * 0.5 + 0.2;
+      }
+
       p.style.position = 'absolute';
       p.style.left = Math.random() * 100 + 'vw';
       p.style.top = '110vh';
-      p.style.fontSize = (Math.random() * 15 + 10) + 'px';
-      p.style.opacity = Math.random() * 0.5 + 0.2;
       containerRef.current.appendChild(p);
 
       gsap.to(p, {
         y: '-120vh',
-        x: (Math.random() - 0.5) * 200,
-        rotation: Math.random() * 360,
-        duration: Math.random() * 5 + 5,
+        x: (Math.random() - 0.5) * 300,
+        rotation: isBokeh ? 0 : Math.random() * 720,
+        duration: Math.random() * 6 + 6,
         ease: "none",
         onComplete: () => p.remove()
       });
     };
 
-    const particleInterval = setInterval(createParticle, 400);
+    const particleInterval = setInterval(createParticle, 300);
 
     return () => clearInterval(particleInterval);
   }, [onComplete]);
 
   return (
-    <div 
+    <div
       ref={containerRef}
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        background: 'url(/src/assets/bokeh_background.png)',
+        background: 'linear-gradient(135deg, #FFC0CB 0%, #E6E6FA 100%)',
         backgroundSize: 'cover',
         display: 'flex',
         flexDirection: 'column',
@@ -82,26 +94,41 @@ const LoadingScreen = ({ onComplete }) => {
         overflow: 'hidden'
       }}
     >
-      <div 
+      {/* Background Bokeh Image Layer */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'url(/src/assets/bokeh_background.png)',
+          backgroundSize: 'cover',
+          opacity: 0.4,
+          filter: 'blur(5px)'
+        }}
+      />
+
+      <div
         className="glass-effect"
         style={{
-          padding: '3rem',
-          borderRadius: '2rem',
+          padding: '4rem',
+          borderRadius: '3rem',
           textAlign: 'center',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '1.5rem'
+          gap: '2rem',
+          position: 'relative',
+          zIndex: 1,
+          boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
         }}
       >
-        <div ref={heartRef} style={{ fontSize: '5rem', filter: 'drop-shadow(0 0 15px rgba(255, 192, 203, 0.8))' }}>
+        <div ref={heartRef} style={{ fontSize: '6rem', filter: 'drop-shadow(0 0 25px rgba(255, 255, 255, 0.8))' }}>
           ❤️
         </div>
         <div ref={textRef} style={{ color: 'white' }}>
-          <h2 style={{ fontSize: '1.8rem', marginBottom: '0.5rem', fontWeight: 300 }}>
-            Loading something special for you...
+          <h2 className="milky-font" style={{ fontSize: '2.5rem', marginBottom: '1rem', fontWeight: 400, transform: 'rotate(-2deg)' }}>
+            Something special is coming...
           </h2>
-          <p className="romantic-font" style={{ fontSize: '1.5rem', opacity: 0.9 }}>
+          <p className="biglla-font" style={{ fontSize: '1.4rem', opacity: 0.9, letterSpacing: '1px' }}>
             Every heartbeat carries my love
           </p>
         </div>
